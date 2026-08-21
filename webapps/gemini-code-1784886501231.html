@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software Lifecycle & Time Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js für die grafische Darstellung über Zeit -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        input[type=range] { accent-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-white">Software Lifecycle & Impact Simulator</h1>
+            <p class="text-slate-400">Verteile dein Budget und beobachte die Entwicklung der Software über einen Zeitraum von 5 Jahren.</p>
+        </header>
+
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Linke Spalte: Schieberegler -->
+            <div class="lg:col-span-5 bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6">
+                
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <h2 class="text-xl font-semibold">Budget-Verteilung</h2>
+                    <span id="budget-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400">
+                        Gesamt: <span id="total-budget">100</span>%
+                    </span>
+                </div>
+
+                <!-- Slider 1: Mehr Features -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-features" class="font-medium text-emerald-400">🚀 Mehr Features</label>
+                        <span class="font-mono" id="val-features">40%</span>
+                    </div>
+                    <input type="range" id="slider-features" min="0" max="100" value="40" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 2: Refactoring -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-refactoring" class="font-medium text-blue-400">🛠️ Refactoring</label>
+                        <span class="font-mono" id="val-refactoring">20%</span>
+                    </div>
+                    <input type="range" id="slider-refactoring" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 3: Wartungsarbeiten -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-maintenance" class="font-medium text-cyan-400">🛡️ Wartung & Patches</label>
+                        <span class="font-mono" id="val-maintenance">20%</span>
+                    </div>
+                    <input type="range" id="slider-maintenance" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 4: Nichts tun -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-nothing" class="font-medium text-amber-400">☕ Nichts tun / Einsparen</label>
+                        <span class="font-mono" id="val-nothing">20%</span>
+                    </div>
+                    <input type="range" id="slider-nothing" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 5: Neubau -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-rewrite" class="font-medium text-rose-400">🏗️ Komplett-Neubau</label>
+                        <span class="font-mono" id="val-rewrite">0%</span>
+                    </div>
+                    <input type="range" id="slider-rewrite" min="0" max="100" value="0" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Dynamisches Feedback/Analyse -->
+                <div id="feedback-box" class="p-4 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-300">
+                    Lade Simulation...
+                </div>
+
+            </div>
+
+            <!-- Rechte Spalte: Grafik über Zeit & Kennzahlen -->
+            <div class="lg:col-span-7 bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6 flex flex-col justify-between">
+                
+                <div>
+                    <h2 class="text-xl font-semibold border-b border-slate-700 pb-3 mb-4">Entwicklung über 5 Jahre</h2>
+                    
+                    <!-- Chart-Container -->
+                    <div class="relative h-64 w-full bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+                        <canvas id="lifecycleChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Aktuelle Status-Indikatoren (Jahr 5) -->
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-700">
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700/50">
+                        <span class="text-xs text-slate-400 block">Funktionsumfang (Jahr 5)</span>
+                        <span id="metric-scope" class="text-lg font-bold text-emerald-400">0%</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700/50">
+                        <span class="text-xs text-slate-400 block">Tech. Schulden (Jahr 5)</span>
+                        <span id="metric-debt" class="text-lg font-bold text-amber-400">0%</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700/50">
+                        <span class="text-xs text-slate-400 block">Wartungsaufwand (Jahr 5)</span>
+                        <span id="metric-maint" class="text-lg font-bold text-blue-400">0%</span>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700/50">
+                        <span class="text-xs text-slate-400 block">Kostenrisiko (Jahr 5)</span>
+                        <span id="metric-risk" class="text-lg font-bold text-rose-400">0%</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // DOM Elemente
+        const sliders = {
+            features: document.getElementById('slider-features'),
+            refactoring: document.getElementById('slider-refactoring'),
+            maintenance: document.getElementById('slider-maintenance'),
+            nothing: document.getElementById('slider-nothing'),
+            rewrite: document.getElementById('slider-rewrite')
+        };
+
+        const values = {
+            features: document.getElementById('val-features'),
+            refactoring: document.getElementById('val-refactoring'),
+            maintenance: document.getElementById('val-maintenance'),
+            nothing: document.getElementById('val-nothing'),
+            rewrite: document.getElementById('val-rewrite')
+        };
+
+        const feedbackBox = document.getElementById('feedback-box');
+        let myChart = null;
+
+        // Init Chart.js
+        function initChart() {
+            const ctx = document.getElementById('lifecycleChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Start', 'Jahr 1', 'Jahr 2', 'Jahr 3', 'Jahr 4', 'Jahr 5'],
+                    datasets: [
+                        {
+                            label: 'Funktionsumfang',
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            data: [20, 30, 40, 50, 60, 70],
+                            tension: 0.3,
+                            fill: false
+                        },
+                        {
+                            label: 'Technische Schulden',
+                            borderColor: '#f59e0b', // amber-500
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            data: [10, 20, 30, 40, 50, 60],
+                            tension: 0.3,
+                            fill: false
+                        },
+                        {
+                            label: 'Wartungsaufwand',
+                            borderColor: '#3b82f6', // blue-500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            data: [15, 22, 28, 35, 42, 50],
+                            tension: 0.3,
+                            fill: false
+                        },
+                        {
+                            label: 'Kostenrisiko',
+                            borderColor: '#f43f5e', // rose-500
+                            borderDash: [5, 5],
+                            data: [5, 10, 20, 35, 55, 80],
+                            tension: 0.3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#cbd5e1', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event-Listener anhängen
+        Object.keys(sliders).forEach(key => {
+            sliders[key].addEventListener('input', () => updateSimulation());
+        });
+
+        function updateSimulation() {
+            // Slider-Werte auslesen
+            const f = parseInt(sliders.features.value);
+            const r = parseInt(sliders.refactoring.value);
+            const m = parseInt(sliders.maintenance.value);
+            const n = parseInt(sliders.nothing.value);
+            const rw = parseInt(sliders.rewrite.value);
+
+            // Labels anzeigen
+            values.features.textContent = f + '%';
+            values.refactoring.textContent = r + '%';
+            values.maintenance.textContent = m + '%';
+            values.nothing.textContent = n + '%';
+            values.rewrite.textContent = rw + '%';
+
+            // Zeitverlauf berechnen (Über 5 Jahre)
+            let scopeData = [20];
+            let debtData = [20];
+            let maintData = [20];
+            let riskData = [10];
+
+            for (let year = 1; year <= 5; year++) {
+                // Jährlicher Zuwachs/Abnahme
+                
+                // 1. Scope wächst durch Features, fällt ab bei Neubau (wenn Jahr 1-2)
+                let scopeDelta = (f * 0.25) + (rw * 0.1);
+                let currentScope = scopeData[year - 1] + scopeDelta;
+
+                // 2. Schulden steigen durch Features & Nichts tun, sinken stark durch Refactoring/Wartung/Neubau
+                let debtDelta = (f * 0.15) + (n * 0.35) - (r * 0.25) - (m * 0.15) - (rw * 0.4);
+                let currentDebt = Math.max(0, debtData[year - 1] + debtDelta);
+
+                // 3. Wartungsaufwand ist eine Funktion aus Gesamtumfang & Schulden
+                let currentMaint = (currentScope * 0.4) + (currentDebt * 0.5) - (m * 0.2);
+
+                // 4. Risiko wächst exponentiell, wenn nichts getan wird oder Schulden hoch sind
+                let riskDelta = (n * 0.3) + (currentDebt * 0.2) - (m * 0.15) - (r * 0.1);
+                let currentRisk = Math.max(0, riskData[year - 1] + riskDelta * (1 + (year * 0.15)));
+
+                scopeData.push(Math.min(100, Math.round(currentScope)));
+                debtData.push(Math.min(100, Math.round(currentDebt)));
+                maintData.push(Math.min(100, Math.round(currentMaint)));
+                riskData.push(Math.min(100, Math.round(currentRisk)));
+            }
+
+            // Chart aktualisieren
+            myChart.data.datasets[0].data = scopeData;
+            myChart.data.datasets[1].data = debtData;
+            myChart.data.datasets[2].data = maintData;
+            myChart.data.datasets[3].data = riskData;
+            myChart.update();
+
+            // Kennzahlen für Jahr 5 aktualisieren
+            document.getElementById('metric-scope').textContent = scopeData[5] + '%';
+            document.getElementById('metric-debt').textContent = debtData[5] + '%';
+            document.getElementById('metric-maint').textContent = maintData[5] + '%';
+            document.getElementById('metric-risk').textContent = riskData[5] + '%';
+
+            // Feedback-Text generieren
+            generateFeedback(f, r, m, n, rw, debtData[5], riskData[5]);
+        }
+
+        function generateFeedback(f, r, m, n, rw, finalDebt, finalRisk) {
+            let text = "";
+
+            if (n > 30) {
+                text = "⚠️ <strong>Achtung (Software Rot):</strong> Nach 5 Jahren 'Nichts tun' steigen die technischen Schulden und das Kostenrisiko steil an. Die Software droht instabil zu werden.";
+            } else if (rw > 40) {
+                text = "🏗️ <strong>Neubau-Fokus:</strong> Die alten Schulden fallen sofort ab. Aber Achtung: Während des Neubaus stagnieren funktionale Erweiterungen für den Nutzer.";
+            } else if (f > 50 && r + m < 20) {
+                text = "🚀 <strong>Feature-Rush:</strong> Schnelles Wachstum in den ersten Jahren, aber ab Jahr 3 verlangsamt sich die Entwicklung, weil der Wartungsaufwand den Ton angibt.";
+            } else if (r + m >= 35 && f >= 25) {
+                text = "⚖️ <strong>Nachhaltiger Pfad:</strong> Perfekte Balance! Die Software wächst stetig (Scope), während Schulden und Risiken über die 5 Jahre unter Kontrolle bleiben.";
+            } else {
+                text = "💡 Verändere die Schieberegler, um zu sehen, wie sich die Kurven über den 5-Jahres-Zeitraum verändern.";
+            }
+
+            feedbackBox.innerHTML = text;
+        }
+
+        // Init beim Laden
+        window.onload = () => {
+            initChart();
+            updateSimulation();
+        };
+    </script>
+</body>
+</html>

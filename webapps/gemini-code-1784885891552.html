@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software Lifecycle Budget Simulator</title>
+    <!-- Tailwind CSS CDN für schnelles Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type=range] { accent-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-white">Software Budget & Impact Simulator</h1>
+            <p class="text-slate-400">Teile dein Jahresbudget (100 %) auf verschiedene Maßnahmen auf und beobachte die Auswirkungen auf dein System.</p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Linke Spalte: Schieberegler (Budget-Allokation) -->
+            <div class="lg:col-span-6 bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6">
+                
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <h2 class="text-xl font-semibold">Budget-Verteilung</h2>
+                    <span id="budget-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400">
+                        Verplant: <span id="total-budget">100</span>%
+                    </span>
+                </div>
+
+                <!-- Slider 1: Mehr Features -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-features" class="font-medium text-emerald-400">🚀 Mehr Features</label>
+                        <span class="font-mono" id="val-features">40%</span>
+                    </div>
+                    <input type="range" id="slider-features" min="0" max="100" value="40" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 2: Refactoring -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-refactoring" class="font-medium text-blue-400">🛠️ Refactoring</label>
+                        <span class="font-mono" id="val-refactoring">20%</span>
+                    </div>
+                    <input type="range" id="slider-refactoring" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 3: Wartungsarbeiten -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-maintenance" class="font-medium text-cyan-400">🛡️ Wartung & Patches</label>
+                        <span class="font-mono" id="val-maintenance">20%</span>
+                    </div>
+                    <input type="range" id="slider-maintenance" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 4: Nichts tun -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-nothing" class="font-medium text-amber-400">☕ Nichts tun / Einsparen</label>
+                        <span class="font-mono" id="val-nothing">20%</span>
+                    </div>
+                    <input type="range" id="slider-nothing" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Slider 5: Neubau -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label for="slider-rewrite" class="font-medium text-rose-400">🏗️ Komplett-Neubau</label>
+                        <span class="font-mono" id="val-rewrite">0%</span>
+                    </div>
+                    <input type="range" id="slider-rewrite" min="0" max="100" value="0" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer">
+                </div>
+
+            </div>
+
+            <!-- Rechte Spalte: Ergebnisse / Indikatoren -->
+            <div class="lg:col-span-6 bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6 flex flex-col justify-between">
+                
+                <div>
+                    <h2 class="text-xl font-semibold border-b border-slate-700 pb-3 mb-6">Auswirkungen auf das System</h2>
+
+                    <!-- Kennzahl 1: Umfang -->
+                    <div class="space-y-1 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-300">Funktionsumfang (Scope)</span>
+                            <span id="metric-scope-val" class="font-mono font-bold">Mittel</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden">
+                            <div id="bar-scope" class="bg-emerald-500 h-full transition-all duration-300" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Kennzahl 2: Technische Schulden -->
+                    <div class="space-y-1 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-300">Technische Schulden</span>
+                            <span id="metric-debt-val" class="font-mono font-bold text-amber-400">Mittel</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden">
+                            <div id="bar-debt" class="bg-amber-500 h-full transition-all duration-300" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Kennzahl 3: Wartungsaufwand -->
+                    <div class="space-y-1 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-300">Zukünftiger Wartungsaufwand</span>
+                            <span id="metric-maint-val" class="font-mono font-bold">Mittel</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden">
+                            <div id="bar-maint" class="bg-blue-500 h-full transition-all duration-300" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Kennzahl 4: Zukünftiges Kostenrisiko -->
+                    <div class="space-y-1 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-300">Langfristiges Kostenrisiko</span>
+                            <span id="metric-risk-val" class="font-mono font-bold">Mittel</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden">
+                            <div id="bar-risk" class="bg-purple-500 h-full transition-all duration-300" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamisches Fazit/Feedback -->
+                <div id="feedback-box" class="p-4 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-300">
+                    Wähle deine Budget-Verteilung, um eine Analyse zu erhalten.
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // DOM Elemente
+        const sliders = {
+            features: document.getElementById('slider-features'),
+            refactoring: document.getElementById('slider-refactoring'),
+            maintenance: document.getElementById('slider-maintenance'),
+            nothing: document.getElementById('slider-nothing'),
+            rewrite: document.getElementById('slider-rewrite')
+        };
+
+        const values = {
+            features: document.getElementById('val-features'),
+            refactoring: document.getElementById('val-refactoring'),
+            maintenance: document.getElementById('val-maintenance'),
+            nothing: document.getElementById('val-nothing'),
+            rewrite: document.getElementById('val-rewrite')
+        };
+
+        const bars = {
+            scope: document.getElementById('bar-scope'),
+            debt: document.getElementById('bar-debt'),
+            maint: document.getElementById('bar-maint'),
+            risk: document.getElementById('bar-risk')
+        };
+
+        const feedbackBox = document.getElementById('feedback-box');
+        const totalBudgetEl = document.getElementById('total-budget');
+        const budgetBadge = document.getElementById('budget-badge');
+
+        // Event-Listener anhängen
+        Object.keys(sliders).forEach(key => {
+            sliders[key].addEventListener('input', updateSimulation);
+        });
+
+        function updateSimulation() {
+            // Werte auslesen
+            const f = parseInt(sliders.features.value);
+            const r = parseInt(sliders.refactoring.value);
+            const m = parseInt(sliders.maintenance.value);
+            const n = parseInt(sliders.nothing.value);
+            const rw = parseInt(sliders.rewrite.value);
+
+            // Labels aktualisieren
+            values.features.textContent = f + '%';
+            values.refactoring.textContent = r + '%';
+            values.maintenance.textContent = m + '%';
+            values.nothing.textContent = n + '%';
+            values.rewrite.textContent = rw + '%';
+
+            // Gesamt-Budget
+            const total = f + r + m + n + rw;
+            totalBudgetEl.textContent = total;
+
+            if(total === 100) {
+                budgetBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400";
+            } else {
+                budgetBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400";
+            }
+
+            // SIMULATIONS-LOGIK (Mathematische Gewichtung basierend auf deinen Regeln)
+
+            // 1. Umfang (Scope)
+            // Steigt stark durch Features, leicht durch Neubau
+            let scopeScore = 30 + (f * 0.7) + (rw * 0.3);
+            scopeScore = Math.min(100, Math.max(0, scopeScore));
+
+            // 2. Technische Schulden
+            // Steigen durch Features & Nichts tun | Sinken durch Refactoring, Wartung & Neubau
+            let debtScore = 40 + (f * 0.5) + (n * 0.8) - (r * 0.6) - (m * 0.3) - (rw * 0.9);
+            debtScore = Math.min(100, Math.max(0, debtScore));
+
+            // 3. Wartungsaufwand (Zukunft)
+            // Steigt mit Umfang & Schulden, sinkt bei gutem Refactoring & Wartung
+            let maintScore = 30 + (f * 0.4) + (debtScore * 0.5) - (r * 0.3) - (m * 0.4);
+            maintScore = Math.min(100, Math.max(0, maintScore));
+
+            // 4. Langfristiges Kostenrisiko
+            // "Nichts tun" treibt das Risiko exponentiell, Neubau ist teuer, Refactoring senkt Risiko
+            let riskScore = 20 + (n * 0.9) + (debtScore * 0.4) + (rw * 0.3) - (m * 0.3) - (r * 0.2);
+            riskScore = Math.min(100, Math.max(0, riskScore));
+
+            // UI Aktualisieren (Balken)
+            bars.scope.style.width = scopeScore + '%';
+            bars.debt.style.width = debtScore + '%';
+            bars.maint.style.width = maintScore + '%';
+            bars.risk.style.width = riskScore + '%';
+
+            // Farben anpassen
+            bars.debt.className = `h-full transition-all duration-300 ${debtScore > 65 ? 'bg-rose-500' : debtScore > 35 ? 'bg-amber-500' : 'bg-emerald-500'}`;
+            bars.risk.className = `h-full transition-all duration-300 ${riskScore > 65 ? 'bg-rose-500' : riskScore > 35 ? 'bg-amber-500' : 'bg-emerald-500'}`;
+
+            // Dynamisches Feedback generieren
+            generateFeedback(f, r, m, n, rw, debtScore, riskScore);
+        }
+
+        function generateFeedback(f, r, m, n, rw, debt, risk) {
+            let text = "";
+
+            if (n > 40) {
+                text = "⚠️ <strong>Achtung:</strong> Du investierst sehr viel in 'Nichts tun'. Die technischen Schulden werden sich rapide anhäufen. Ein Systemabsturz oder eine Sicherheitslücke droht!";
+            } else if (rw > 50) {
+                text = "🏗️ <strong>Neubau-Fokus:</strong> Du setzt auf einen Neuanfang. Die alten Schulden verschwinden, aber das Projekt zieht enorm viel Budget und birgt hohe Lieferrisiken.";
+            } else if (f > 60 && r + m < 20) {
+                text = "🚀 <strong>Feature-Rush:</strong> Du baust extrem viele neue Features, vernachlässigst aber die Pflege. Das System wird schnell unwartbar und instabil werden.";
+            } else if (r + m >= 40 && f >= 30) {
+                text = "⚖️ <strong>Gesunde Balance:</strong> Du investierst kontinuierlich in Wertzuwachs (Features) und Erhalt (Refactoring/Wartung). Das System bleibt stabil und zukunftsfähig!";
+            } else {
+                text = "💡 Passe die Regler an, um zu sehen, wie sich dein Budget-Mix auf die Zukunftsfähigkeit der Software auswirkt.";
+            }
+
+            feedbackBox.innerHTML = text;
+        }
+
+        // Erstes Rendern
+        updateSimulation();
+    </script>
+</body>
+</html>

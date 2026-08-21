@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Software Lifecycle Planer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --p1-color: #0284c7;
+      --p2-color: #0d9488;
+      --accent: #eab308;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem; }
+    .container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+
+    header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .grid { display: grid; grid-template-columns: 320px 1fr; gap: 2rem; }
+    @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+
+    .controls {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .control-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .input-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .input-row input {
+      width: 70px;
+      padding: 0.4rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .output-card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .info-box {
+      background: rgba(234, 179, 8, 0.1);
+      border-left: 4px solid var(--accent);
+      padding: 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .gantt-wrapper { overflow-x: auto; }
+    .gantt-chart { display: flex; flex-direction: column; gap: 0.5rem; min-width: 600px; }
+
+    .timeline-header { display: grid; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+    .timeline-header div { text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); }
+
+    .project-title { font-weight: bold; margin-top: 1rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.p1 { background: var(--p1-color); }
+    .dot.p2 { background: var(--p2-color); }
+
+    .gantt-row { display: grid; align-items: center; height: 32px; font-size: 0.85rem; }
+    .row-label { font-size: 0.8rem; color: var(--text-muted); }
+
+    .bar-container { grid-column: 2 / -1; display: grid; height: 100%; align-items: center; }
+    .bar {
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: white;
+      position: relative;
+    }
+    .bar.p1 { background: var(--p1-color); }
+    .bar.p2 { background: var(--p2-color); }
+
+    .milestone {
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      transform: rotate(45deg);
+      margin: 0 auto;
+      position: relative;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Software Lifecycle Planer</h1>
+    <p>Berechnung der nahtlosen Übergabe und Resilienz zwischen zwei Software-Generationen.</p>
+  </header>
+
+  <div class="grid">
+    <!-- Controls -->
+    <div class="controls">
+      <h3>Planungs-Parameter</h3>
+
+      <div class="control-group">
+        <label>Projekt 1 Dauer</label>
+        <div class="input-row">
+          <span>Ausschreibung (Jahre):</span>
+          <input type="number" id="p1_ausschreibung" value="1" min="1" max="5">
+        </div>
+        <div class="input-row">
+          <span>Entwicklung (Jahre):</span>
+          <input type="number" id="p1_entwicklung" value="3" min="1" max="10">
+        </div>
+        <div class="input-row">
+          <span>Wartung/Betrieb (Jahre):</span>
+          <input type="number" id="p1_wartung" value="6" min="1" max="15">
+        </div>
+      </div>
+
+      <hr style="border-color: var(--border);">
+
+      <div class="control-group">
+        <label>Projekt 2 Dauer</label>
+        <div class="input-row">
+          <span>Ausschreibung (Jahre):</span>
+          <input type="number" id="p2_ausschreibung" value="1" min="1" max="5">
+        </div>
+        <div class="input-row">
+          <span>Entwicklung (Jahre):</span>
+          <input type="number" id="p2_entwicklung" value="3" min="1" max="10">
+        </div>
+        <div class="input-row">
+          <span>Wartung/Betrieb (Jahre):</span>
+          <input type="number" id="p2_wartung" value="5" min="1" max="15">
+        </div>
+      </div>
+    </div>
+
+    <!-- Output & Visualization -->
+    <div class="output-card">
+      <div class="info-box" id="analysis-text">
+        <!-- Dynamischer Text -->
+      </div>
+
+      <div class="gantt-wrapper">
+        <div class="gantt-chart" id="gantt">
+          <!-- Dynamischer Gantt Chart -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const inputs = [
+    'p1_ausschreibung', 'p1_entwicklung', 'p1_wartung',
+    'p2_ausschreibung', 'p2_entwicklung', 'p2_wartung'
+  ];
+
+  inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', render);
+  });
+
+  function render() {
+    const p1_a = parseInt(document.getElementById('p1_ausschreibung').value) || 1;
+    const p1_e = parseInt(document.getElementById('p1_entwicklung').value) || 1;
+    const p1_w = parseInt(document.getElementById('p1_wartung').value) || 1;
+
+    const p2_a = parseInt(document.getElementById('p2_ausschreibung').value) || 1;
+    const p2_e = parseInt(document.getElementById('p2_entwicklung').value) || 1;
+    const p2_w = parseInt(document.getElementById('p2_wartung').value) || 1;
+
+    // Timeline Berechnungen
+    const p1_golive_year = p1_a + p1_e;
+    const p1_eol_year = p1_golive_year + p1_w;
+
+    // Projekt 2 muss genau zum P1 EOL fertig entwickelt sein
+    const p2_golive_year = p1_eol_year;
+    const p2_start_dev = p2_golive_year - p2_e;
+    const p2_start_ausschreibung = p2_start_dev - p2_a;
+    const p2_eol_year = p2_golive_year + p2_w;
+
+    const totalYears = Math.max(p1_eol_year + 1, p2_eol_year + 1);
+
+    // Infobox Update
+    const infoBox = document.getElementById('analysis-text');
+    infoBox.innerHTML = `
+      <strong>Kritischer Meilenstein für Kontinuität:</strong><br>
+      Um das <strong>EOL von Projekt 1 in Jahr ${p1_eol_year}</strong> ohne Betriebsunterbrechung einzuhalten,
+      muss die <strong>Ausschreibung für Projekt 2 spätestens in Jahr ${p2_start_ausschreibung + 1}</strong> starten.<br>
+      Projekt 2 verbleibt anschließend bis <strong>Jahr ${p2_eol_year}</strong> im aktiven Betrieb.
+    `;
+
+    // Gantt Chart Rendering
+    const chart = document.getElementById('gantt');
+    chart.innerHTML = '';
+
+    // Header Row
+    let gridCols = `140px repeat(${totalYears}, 1fr)`;
+    const header = document.createElement('div');
+    header.className = 'timeline-header';
+    header.style.gridTemplateColumns = gridCols;
+    header.innerHTML = '<div>Phase</div>';
+    for (let i = 1; i <= totalYears; i++) {
+      header.innerHTML += `<div>J${i}</div>`;
+    }
+    chart.appendChild(header);
+
+    function createRow(label, startYear, duration, type, isMilestone = false) {
+      const row = document.createElement('div');
+      row.className = 'gantt-row';
+      row.style.gridTemplateColumns = gridCols;
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'row-label';
+      labelDiv.innerText = label;
+      row.appendChild(labelDiv);
+
+      const barContainer = document.createElement('div');
+      barContainer.className = 'bar-container';
+      barContainer.style.gridColumn = `${startYear + 2} / span ${duration}`;
+
+      if (isMilestone) {
+        const ms = document.createElement('div');
+        ms.className = 'milestone';
+        ms.title = label;
+        barContainer.appendChild(ms);
+      } else {
+        const bar = document.createElement('div');
+        bar.className = `bar ${type}`;
+        bar.innerText = `${duration} J.`;
+        barContainer.appendChild(bar);
+      }
+
+      row.appendChild(barContainer);
+      return row;
+    }
+
+    function createSectionTitle(title, cssClass) {
+      const div = document.createElement('div');
+      div.className = 'project-title';
+      div.innerHTML = `<span class="dot ${cssClass}"></span> ${title}`;
+      return div;
+    }
+
+    // Projekt 1
+    chart.appendChild(createSectionTitle('Projekt 1 (Bestandssystem)', 'p1'));
+    chart.appendChild(createRow('Ausschreibung', 0, p1_a, 'p1'));
+    chart.appendChild(createRow('Entwicklung', p1_a, p1_e, 'p1'));
+    chart.appendChild(createRow('Go-Live', p1_golive_year - 1, 1, 'p1', true));
+    chart.appendChild(createRow('Wartung / Betrieb', p1_golive_year, p1_w, 'p1'));
+    chart.appendChild(createRow('End of Life (EOL)', p1_eol_year - 1, 1, 'p1', true));
+
+    // Projekt 2
+    chart.appendChild(createSectionTitle('Projekt 2 (Nachfolgesystem)', 'p2'));
+    chart.appendChild(createRow('Ausschreibung', p2_start_ausschreibung, p2_a, 'p2'));
+    chart.appendChild(createRow('Entwicklung', p2_start_dev, p2_e, 'p2'));
+    chart.appendChild(createRow('Go-Live (Ablösung)', p2_golive_year - 1, 1, 'p2', true));
+    chart.appendChild(createRow('Wartung / Betrieb', p2_golive_year, p2_w, 'p2'));
+    chart.appendChild(createRow('End of Life (EOL)', p2_eol_year - 1, 1, 'p2', true));
+  }
+
+  render();
+</script>
+</body>
+</html>

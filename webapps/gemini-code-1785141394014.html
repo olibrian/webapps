@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSS Veröffentlichungs-Assistent (EMBAG)</title>
+    <style>
+        :root {
+            --primary: #2b4c7e;
+            --primary-light: #4a6fa5;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 { color: var(--primary); }
+        h1 { margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 20px 0 30px 0;
+            background: #e9ecef;
+            border-radius: 20px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Tabs / Steps Nav */
+        .nav-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .step-btn {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #6c757d;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .step-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .step-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            background: #f1f3f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .checkbox-group input {
+            margin-right: 12px;
+            margin-top: 4px;
+            transform: scale(1.2);
+        }
+
+        /* Action Buttons */
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-success { background: var(--success); color: white; }
+
+        /* Output Box */
+        pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>OSS Veröffentlichungs-Assistent (EMBAG)</h1>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="nav-steps">
+        <button class="step-btn active" onclick="showStep(1)">Phase 1: Vorabklärung</button>
+        <button class="step-btn" onclick="showStep(2)">Phase 2: Analyse & Aufbereitung</button>
+        <button class="step-btn" onclick="showStep(3)">Phase 3: Veröffentlichung</button>
+        <button class="step-btn" onclick="showStep(4)">Ergebnis & Export</button>
+    </div>
+
+    <!-- STEP 1: VORABKLÄRUNG -->
+    <div id="step1" class="step-content">
+        <h2>Phase 1: Vorabklärung</h2>
+        <div class="form-group">
+            <label>Name der Software (identisch über alle Dokumente):</label>
+            <input type="text" id="swName" placeholder="z. B. admin-portal-service">
+        </div>
+        <div class="form-group">
+            <label>Zweck und Umfang (Scope):</label>
+            <textarea id="swScope" rows="2" placeholder="Kurze Beschreibung der Software..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Entwicklungsbeginn (EMBAG Status):</label>
+            <select id="swStatus">
+                <option value="new">Ab/nach 01.01.2024 entwickelt (Publikationspflicht)</option>
+                <option value="legacy">Legacy Code (vor 01.01.2024 entwickelt)</option>
+            </select>
+        </div>
+
+        <h3>Rechtliche & Sicherheitsprüfungen</h3>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkRechte" onchange="checkLogic()">
+            <div>
+                <strong>Rechte Dritter geklärt:</strong> Liegen alle Schutzrechte beim Bund oder können sie erworben/abgegrenzt werden?
+            </div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkSicherheit" onchange="checkLogic()">
+            <div>
+                <strong>Sicherheit geklärt:</strong> Es liegen keine zwingenden sicherheitsrelevanten Gründe vor (oder sensitive Teile können entkoppelt werden).
+            </div>
+        </div>
+
+        <div id="alertException" class="alert alert-danger hidden">
+            <strong>Achtung Ausnahmetatbestand:</strong> Eine Veröffentlichung ist derzeit nicht möglich. Bitte füllen Sie das Formular <em>Em002-2.1</em> aus und begründen Sie die Ausnahme (Rechte Dritter oder Sicherheit).
+        </div>
+    </div>
+
+    <!-- STEP 2: ANALYSE UND AUFBEREITUNG -->
+    <div id="step2" class="step-content hidden">
+        <h2>Phase 2: Analyse & Aufbereitung</h2>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkQuality" onchange="updateProgress()">
+            <div><strong>Code Quality & Secrets:</strong> Code-Richtlinien geprüft, Credentials, Passwörter und schützenswerte Daten/Personendaten aus Code & History bereinigt.</div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkDependencies" onchange="updateProgress()">
+            <div><strong>Dependencies & Lizenzkompatibilität:</strong> Alle Bibliotheken via Package-Manager erfasst und auf Lizenzkompatibilität geprüft.</div>
+        </div>
+        
+        <div class="form-group">
+            <label>Gewählte Open-Source-Lizenz:</label>
+            <select id="swLicense">
+                <option value="MIT">MIT License (Permissiv)</option>
+                <option value="AGPL-3.0-only">GNU AGPL v3 (Copyleft)</option>
+                <option value="Apache-2.0">Apache License 2.0</option>
+            </select>
+        </div>
+
+        <h3>Erstellte Dokumente im Repository</h3>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkDocs" onchange="updateProgress()">
+            <div>Standarddokumente vorhanden: README.md, LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, .gitignore, THIRD-PARTY-LICENSES.md.</div>
+        </div>
+    </div>
+
+    <!-- STEP 3: PUBLIKATION UND BEKANNTMACHUNG -->
+    <div id="step3" class="step-content hidden">
+        <h2>Phase 3: Veröffentlichung & Bekanntmachung</h2>
+        <div class="form-group">
+            <label>Geplantes Ziel-Repository / Plattform:</label>
+            <input type="text" id="repoUrl" placeholder="z. B. https://github.com/admin-ch/admin-portal-service">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkISDS" onchange="updateProgress()">
+            <div><strong>ISDS & Sicherheit:</strong> ISDS-Konzept liegt vor, Verantwortlicher für Security/Bug-Bounty ist bestimmt.</div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkApproval" onchange="updateProgress()">
+            <div><strong>Formelle Freigabe:</strong> Freigabeerklärung durch Applikations- und Budgetverantwortliche liegt vor.</div>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="chkPublicCode" onchange="updateProgress()">
+            <div><strong>Katalog-Anbindung:</strong> <code>publiccode.yml</code> erstellt und Meldung an <code>opensource@bk.admin.ch</code> vorbereitet.</div>
+        </div>
+    </div>
+
+    <!-- STEP 4: ERGEBNIS & EXPORT -->
+    <div id="step4" class="step-content hidden">
+        <h2>Ergebnis & Generierte Artefakte</h2>
+        <p>Folgende Dokumenten-Bausteine wurden automatisch basierend auf Ihren Eingaben generiert:</p>
+
+        <h3>Generiertes publiccode.yml</h3>
+        <pre id="outPublicCode"></pre>
+
+        <h3>Generiertes README.md (Startbaustein)</h3>
+        <pre id="outReadme"></pre>
+
+        <button class="btn btn-success" onclick="exportData()">Prozess-Status als JSON exportieren</button>
+        <button class="btn btn-secondary" onclick="window.print()">Als PDF / Protokoll drucken</button>
+    </div>
+
+    <!-- NAVIGATION BUTTONS -->
+    <div class="btn-container">
+        <button class="btn btn-secondary" id="btnPrev" onclick="moveStep(-1)" disabled>Zurück</button>
+        <button class="btn btn-primary" id="btnNext" onclick="moveStep(1)">Weiter</button>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+
+    function showStep(step) {
+        if (step < 1 || step > 4) return;
+        
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.step-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(`step${step}`).classList.remove('hidden');
+        document.querySelectorAll('.step-btn')[step-1].classList.add('active');
+        
+        currentStep = step;
+        
+        document.getElementById('btnPrev').disabled = (currentStep === 1);
+        document.getElementById('btnNext').innerText = (currentStep === 4) ? 'Fertig' : 'Weiter';
+
+        if (step === 4) generateArtifacts();
+        updateProgress();
+    }
+
+    function moveStep(delta) {
+        showStep(currentStep + delta);
+    }
+
+    function checkLogic() {
+        const rechte = document.getElementById('chkRechte').checked;
+        const sicherheit = document.getElementById('chkSicherheit').checked;
+        const alertBox = document.getElementById('alertException');
+
+        if (!rechte || !sicherheit) {
+            alertBox.classList.remove('hidden');
+        } else {
+            alertBox.classList.add('hidden');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const totalInputs = 8;
+        let completedInputs = 0;
+
+        if (document.getElementById('swName').value.trim() !== "") completedInputs++;
+        if (document.getElementById('chkRechte').checked) completedInputs++;
+        if (document.getElementById('chkSicherheit').checked) completedInputs++;
+        if (document.getElementById('chkQuality').checked) completedInputs++;
+        if (document.getElementById('chkDependencies').checked) completedInputs++;
+        if (document.getElementById('chkDocs').checked) completedInputs++;
+        if (document.getElementById('chkISDS').checked) completedInputs++;
+        if (document.getElementById('chkApproval').checked) completedInputs++;
+
+        const percentage = Math.round((completedInputs / totalInputs) * 100);
+        document.getElementById('progressBar').style.width = `${percentage}%`;
+    }
+
+    function generateArtifacts() {
+        const name = document.getElementById('swName').value || 'unnamed-project';
+        const scope = document.getElementById('swScope').value || 'Keine Beschreibung angegeben.';
+        const license = document.getElementById('swLicense').value;
+        const repo = document.getElementById('repoUrl').value || 'https://github.com/admin-ch/' + name;
+
+        // Generate publiccode.yml
+        const publicCodeText = `publiccodeYmlVersion: '0.2'
+name: ${name}
+url: '${repo}'
+status: 'development'
+license: '${license}'
+platforms:
+  - web
+categories:
+  - it-development
+description:
+  de:
+    shortDescription: '${scope}'
+    longDescription: '${scope}'
+legal:
+  repoOwner: 'Schweizerische Eidgenossenschaft'`;
+
+        document.getElementById('outPublicCode').innerText = publicCodeText;
+
+        // Generate README.md
+        const readmeText = `# ${name}
+
+${scope}
+
+Dieses Projekt ist Open Source Software unter der **${license}** Lizenz.
+
+## Dokumentation & Beteiligung
+- Lizenzdetails siehe [LICENSE](./LICENSE)
+- Drittkomponenten siehe [THIRD-PARTY-LICENSES.md](./THIRD-PARTY-LICENSES.md)
+- Richtlinien für Beiträge siehe [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## Kontakt
+Verantwortliche Organisationseinheit der Bundesverwaltung.`;
+
+        document.getElementById('outReadme').innerText = readmeText;
+    }
+
+    function exportData() {
+        const data = {
+            softwareName: document.getElementById('swName').value,
+            scope: document.getElementById('swScope').value,
+            status: document.getElementById('swStatus').value,
+            checks: {
+                rechteGeklaert: document.getElementById('chkRechte').checked,
+                sicherheitGeklaert: document.getElementById('chkSicherheit').checked,
+                codeQuality: document.getElementById('chkQuality').checked,
+                dependenciesChecked: document.getElementById('chkDependencies').checked,
+                docsCreated: document.getElementById('chkDocs').checked,
+                isdsConcept: document.getElementById('chkISDS').checked,
+                formallyApproved: document.getElementById('chkApproval').checked
+            },
+            license: document.getElementById('swLicense').value,
+            repository: document.getElementById('repoUrl').value,
+            exportDate: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `OSS-Freigabe-${data.softwareName || 'export'}.json`;
+        a.click();
+    }
+</script>
+
+</body>
+</html>
