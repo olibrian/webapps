@@ -132,6 +132,7 @@
     // GitHub Zugangsdaten anpassen!
     const USERNAME = 'olibrian';
     const REPO = 'webapps';
+    const FOLDER = 'webapps'; // Ordnername
 
     let loadedAppsData = [];
 
@@ -139,17 +140,22 @@
       const listElement = document.getElementById('app-list');
 
       try {
-        // 1. Dateien vom GitHub Repository abfragen
-        const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO}/contents/webapps`);
+        // 1. Dateien speziell im Ordner "webapps" abfragen
+        const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FOLDER}`);
+        
+        if (!response.ok) {
+          throw new Error('Ordner nicht gefunden oder API-Fehler');
+        }
+
         const files = await response.json();
 
-        // Nur HTML-Dateien filtern (index.html ausschließen)
+        // Nur HTML-Dateien filtern
         const htmlFiles = files.filter(file => 
-          file.name.endsWith('.html') && file.name.toLowerCase() !== 'index.html'
+          file.type === 'file' && file.name.endsWith('.html')
         );
 
         if (htmlFiles.length === 0) {
-          listElement.innerHTML = '<li class="status-msg">Keine HTML-Webapps im Repository gefunden.</li>';
+          listElement.innerHTML = `<li class="status-msg">Keine HTML-Webapps im Ordner "${FOLDER}" gefunden.</li>`;
           return;
         }
 
@@ -160,9 +166,10 @@
         for (const file of htmlFiles) {
           let title = file.name.replace('.html', '');
           let description = '';
+          const relativePath = `${FOLDER}/${file.name}`;
 
           try {
-            const docResponse = await fetch(file.name);
+            const docResponse = await fetch(relativePath);
             const htmlText = await docResponse.text();
             const doc = parser.parseFromString(htmlText, 'text/html');
 
@@ -176,10 +183,11 @@
               description = metaDesc.getAttribute('content').trim();
             }
           } catch (e) {
-            console.warn(`Metadaten konnten für ${file.name} nicht geladen werden.`, e);
+            console.warn(`Metadaten konnten für ${relativePath} nicht geladen werden.`, e);
           }
 
           loadedAppsData.push({
+            path: relativePath,
             filename: file.name,
             title: title,
             description: description
@@ -189,7 +197,7 @@
         renderApps(loadedAppsData);
 
       } catch (error) {
-        listElement.innerHTML = '<li class="status-msg">Fehler beim Laden der Webapps. Überprüfe Username und Repo-Name.</li>';
+        listElement.innerHTML = `<li class="status-msg">Fehler beim Laden. Überprüfe Username, Repo-Name und ob der Ordner "${FOLDER}" existiert.</li>`;
         console.error(error);
       }
     }
@@ -208,10 +216,10 @@
         li.className = 'app-card';
 
         li.innerHTML = `
-          <a href="${app.filename}">
+          <a href="${app.path}">
             <div class="app-title">${escapeHtml(app.title)}</div>
             ${app.description ? `<div class="app-desc">${escapeHtml(app.description)}</div>` : ''}
-            <span class="app-filename">${escapeHtml(app.filename)}</span>
+            <span class="app-filename">${escapeHtml(app.path)}</span>
           </a>
         `;
         listElement.appendChild(li);
