@@ -140,7 +140,7 @@
 
       try {
         // 1. Dateien vom GitHub Repository abfragen
-        const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO}/contents/`);
+        const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO}/contents/webapps`);
         const files = await response.json();
 
         // Nur HTML-Dateien filtern (index.html ausschließen)
